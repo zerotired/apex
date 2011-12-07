@@ -34,7 +34,7 @@ class RegisterForm(ExtendedForm):
         id = AuthID()
         DBSession.add(id)
         user = AuthUser(
-            username=username,
+            login=username,
             password=self.data['password'],
             email=self.data['email'],
         )

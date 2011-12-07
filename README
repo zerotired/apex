@@ -1,4 +1,12 @@
-THIS BREAKS ALL BACKWARDS COMPATIBILITY, DO NOT USE!!!!!!!!!
+THIS BREAKS ALL BACKWARDS COMPATIBILITY.
+
+Due to a massive colossal screwup on my part with Github, it appears
+that after merging the branch, Github wants to always overwrite the
+master. While I wasn't ready to push this code, I'm going to do a
+fast and quick onceover and move to the new methods. This means that 
+existing auth systems need to be modified - check the install 
+instructions as you'll need to slightly modify your SQL, do some imports, 
+and make sure you're running Velruse trunk.
 
 Authentication, Form Library, I18N/L10N, Flash Message Template
 (not associated with Pyramid, a Pylons project)

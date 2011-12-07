@@ -22,3 +22,6 @@ Email Issues
 
 UX Issues
 * add more detail to exceptions
+
+SQL Issues
+* unique index on auth_user_group on user_id,group_id

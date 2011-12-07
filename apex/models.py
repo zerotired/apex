@@ -1,14 +1,19 @@
-from cryptacular.bcrypt import BCRYPTPasswordManager
+import hashlib
+import random
+import string
 import transaction
+
+from cryptacular.bcrypt import BCRYPTPasswordManager
 
 from pyramid.threadlocal import get_current_request
 from pyramid.util import DottedNameResolver
 
-from sqlalchemy import Column
-from sqlalchemy import ForeignKey
-from sqlalchemy import Table
-from sqlalchemy import Unicode
-from sqlalchemy import types
+from sqlalchemy import (Column,
+                        ForeignKey,
+                        Index,
+                        Table,
+                        types,
+                        Unicode)
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
@@ -23,19 +28,17 @@ from zope.sqlalchemy import ZopeTransactionExtension
 
 from apex.lib.db import get_or_create
 
-import hashlib
-import random
-import string
-
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
 
-user_group_table = Table('auth_user_groups', Base.metadata,
-    Column('user_id', types.Integer(), \
+auth_group_table = Table('auth_auth_groups', Base.metadata,
+    Column('auth_id', types.Integer(), \
         ForeignKey('auth_id.id', onupdate='CASCADE', ondelete='CASCADE')),
     Column('group_id', types.Integer(), \
         ForeignKey('auth_groups.id', onupdate='CASCADE', ondelete='CASCADE'))
 )
+# need to create Unique index on (auth_id,group_id)
+Index('auth_group', auth_group_table, auth_group_table.c.auth_id, auth_group_table.c.group_id)
 
 class AuthGroup(Base):
     """ Table name: auth_groups
@@ -53,7 +56,7 @@ class AuthGroup(Base):
     name = Column(Unicode(80), unique=True, nullable=False)
     description = Column(Unicode(255), default=u'')
 
-    users = relationship('AuthID', secondary=user_group_table, \
+    users = relationship('AuthID', secondary=auth_group_table, \
                      backref='auth_groups')
 
     def __repr__(self):
@@ -72,14 +75,14 @@ class AuthID(Base):
     active = Column(types.Enum(u'Y',u'N',u'D', name=u"active"), default=u'Y')
     created = Column(types.DateTime(), default=func.now())
 
-    groups = relationship('AuthGroup', secondary=user_group_table, \
+    groups = relationship('AuthGroup', secondary=auth_group_table, \
                       backref='auth_users')
 
     users = relationship('AuthUser')
 
     """
     Fix this to use association_proxy
-    groups = association_proxy('user_group_table', 'authgroup')
+    groups = association_proxy('auth_group_table', 'authgroup')
     """
 
     last_login = relationship('AuthUserLog', \
@@ -239,10 +242,20 @@ class AuthUser(Base):
         if not user:
             return False
         if BCRYPTPasswordManager().check(user.password,
-            kwargs['password'] + user.salt):
+            '%s%s' % (kwargs['password'], user.salt)):
             return True
-        else:
-            return False
+
+        request = get_current_request()
+        fallback_auth = request.registry.settings.get('apex.fallback_auth')
+        if fallback_auth:
+            resolver = DottedNameResolver(fallback_auth.split('.', 1)[0])
+            fallback = resolver.resolve(fallback_auth)
+            blah = fallback().check(DBSession, request, user, \
+                       kwargs['password'])
+            print 'return', blah
+            return blah
+
+        return False
 
 class AuthUserLog(Base):
     """
