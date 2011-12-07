@@ -1,9 +1,18 @@
+THIS BREAKS ALL BACKWARDS COMPATIBILITY, DO NOT USE!!!!!!!!!
+
 Authentication, Form Library, I18N/L10N, Flash Message Template
 (not associated with Pyramid, a Pylons project)
 
 Uses pyramid_routesalchemy
 
 * Authentication
+
+Authentication has a single authentication id which can have multiple
+associated credentials. A user can create a username and associate their
+Facebook and Google login records with their current record and log in
+with any of them. It is planned that Apex will act as an endpoint for
+multi-domain multi-site installations - allowing one to associate a login
+account from one domain to another.
 
 Local authentication uses BCrypt
 http://codahale.com/how-to-safely-store-a-password/

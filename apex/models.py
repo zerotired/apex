@@ -32,7 +32,7 @@ Base = declarative_base()
 
 user_group_table = Table('auth_user_groups', Base.metadata,
     Column('user_id', types.Integer(), \
-        ForeignKey('auth_users.id', onupdate='CASCADE', ondelete='CASCADE')),
+        ForeignKey('auth_id.id', onupdate='CASCADE', ondelete='CASCADE')),
     Column('group_id', types.Integer(), \
         ForeignKey('auth_groups.id', onupdate='CASCADE', ondelete='CASCADE'))
 )
@@ -53,7 +53,7 @@ class AuthGroup(Base):
     name = Column(Unicode(80), unique=True, nullable=False)
     description = Column(Unicode(255), default=u'')
 
-    users = relationship('AuthUser', secondary=user_group_table, \
+    users = relationship('AuthID', secondary=user_group_table, \
                      backref='auth_groups')
 
     def __repr__(self):
@@ -63,6 +63,69 @@ class AuthGroup(Base):
         return self.name
     
 
+class AuthID(Base):
+    __tablename__ = 'auth_id'
+    __table_args__ = {"sqlite_autoincrement": True}
+
+    id = Column(types.Integer(), primary_key=True)
+    display_name = Column(Unicode(80), default=u'')
+    active = Column(types.Enum(u'Y',u'N',u'D', name=u"active"), default=u'Y')
+    created = Column(types.DateTime(), default=func.now())
+
+    groups = relationship('AuthGroup', secondary=user_group_table, \
+                      backref='auth_users')
+
+    users = relationship('AuthUser')
+
+    """
+    Fix this to use association_proxy
+    groups = association_proxy('user_group_table', 'authgroup')
+    """
+
+    last_login = relationship('AuthUserLog', \
+                         order_by='AuthUserLog.id.desc()')
+    login_log = relationship('AuthUserLog', \
+                         order_by='AuthUserLog.id')
+
+    @classmethod
+    def get_by_id(cls, id):
+        """ 
+        Returns AuthID object or None by id
+
+        .. code-block:: python
+
+           from apex.models import AuthID
+
+           user = AuthID.get_by_id(1)
+        """
+        return DBSession.query(cls).filter(cls.id==id).first()    
+
+    def get_profile(self, request=None):
+        """
+        Returns AuthUser.profile object, creates record if it doesn't exist.
+
+        .. code-block:: python
+
+           from apex.models import AuthUser
+
+           user = AuthUser.get_by_id(1)
+           profile = user.get_profile(request)
+
+        in **development.ini**
+
+        .. code-block:: python
+
+           apex.auth_profile = 
+        """
+        if not request:
+            request = get_current_request()
+
+        auth_profile = request.registry.settings.get('apex.auth_profile')
+        if auth_profile:
+            resolver = DottedNameResolver(auth_profile.split('.')[0])
+            profile_cls = resolver.resolve(auth_profile)
+            return get_or_create(DBSession, profile_cls, user_id=self.id)
+
 class AuthUser(Base):
     """ Table name: auth_users
 
@@ -70,7 +133,6 @@ class AuthUser(Base):
 
     id = Column(types.Integer(), primary_key=True)
     login = Column(Unicode(80), default=u'', index=True)
-    username = Column(Unicode(80), default=u'', index=True)
     _password = Column('password', Unicode(80), default=u'')
     email = Column(Unicode(80), default=u'', index=True)
     active = Column(types.Enum(u'Y',u'N',u'D'), default=u'Y')
@@ -79,24 +141,14 @@ class AuthUser(Base):
     __table_args__ = {"sqlite_autoincrement": True}
 
     id = Column(types.Integer(), primary_key=True)
+    auth_id = Column(types.Integer, ForeignKey(AuthID.id), index=True)
     login = Column(Unicode(80), default=u'', index=True)
     username = Column(Unicode(80), default=u'', index=True)
     salt = Column(Unicode(24))
     _password = Column('password', Unicode(80), default=u'')
     email = Column(Unicode(80), default=u'', index=True)
+    created = Column(types.DateTime(), default=func.now())
     active = Column(types.Enum(u'Y',u'N',u'D', name=u"active"), default=u'Y')
-
-    groups = relationship('AuthGroup', secondary=user_group_table, \
-                      backref='auth_users')
-
-    last_login = relationship('AuthUserLog', \
-                         order_by='AuthUserLog.id.desc()')
-    login_log = relationship('AuthUserLog', \
-                         order_by='AuthUserLog.id')
-    """
-    Fix this to use association_proxy
-    groups = association_proxy('user_group_table', 'authgroup')
-    """
 
     def _set_password(self, password):
         self.salt = self.get_salt(24)
@@ -133,9 +185,9 @@ class AuthUser(Base):
 
         .. code-block:: python
 
-           from apex.models import AuthUser
+           from apex.models import AuthID
 
-           user = AuthUser.get_by_id(1)
+           user = AuthID.get_by_id(1)
         """
         return DBSession.query(cls).filter(cls.id==id).first()    
 
@@ -163,7 +215,7 @@ class AuthUser(Base):
 
            user = AuthUser.get_by_username('username')
         """
-        return DBSession.query(cls).filter(cls.username==username).first()
+        return DBSession.query(cls).filter(cls.login==username).first()
 
     @classmethod
     def get_by_email(cls, email):
@@ -193,32 +245,6 @@ class AuthUser(Base):
         else:
             return False
 
-    def get_profile(self, request=None):
-        """
-        Returns AuthUser.profile object, creates record if it doesn't exist.
-
-        .. code-block:: python
-
-           from apex.models import AuthUser
-
-           user = AuthUser.get_by_id(1)
-           profile = user.get_profile(request)
-
-        in **development.ini**
-
-        .. code-block:: python
-
-           apex.auth_profile = 
-        """
-        if not request:
-            request = get_current_request()
-
-        auth_profile = request.registry.settings.get('apex.auth_profile')
-        if auth_profile:
-            resolver = DottedNameResolver(auth_profile.split('.')[0])
-            profile_cls = resolver.resolve(auth_profile)
-            return get_or_create(DBSession, profile_cls, user_id=self.id)
-
 class AuthUserLog(Base):
     """
     event: 
@@ -231,6 +257,7 @@ class AuthUserLog(Base):
     __table_args__ = {"sqlite_autoincrement": True}
 
     id = Column(types.Integer, primary_key=True)
+    auth_id = Column(types.Integer, ForeignKey(AuthID.id), index=True)
     user_id = Column(types.Integer, ForeignKey(AuthUser.id), index=True)
     time = Column(types.DateTime(), default=func.now())
     ip_addr = Column(Unicode(39), nullable=False)

@@ -10,6 +10,7 @@ from pyramid.threadlocal import get_current_request
 
 from apex.models import DBSession
 from apex.models import AuthGroup
+from apex.models import AuthID
 from apex.models import AuthUser
 from apex.lib.form import ExtendedForm
 
@@ -30,17 +31,20 @@ class RegisterForm(ExtendedForm):
             raise validators.ValidationError(_('Sorry that username already exists.'))
 
     def create_user(self, username):
+        id = AuthID()
+        DBSession.add(id)
         user = AuthUser(
             username=username,
             password=self.data['password'],
             email=self.data['email'],
         )
+        id.users.append(user)
         DBSession.add(user)
         settings = get_current_registry().settings
         if settings.has_key('apex.default_user_group'):
             group = DBSession.query(AuthGroup). \
                filter(AuthGroup.name==settings['apex.default_user_group']).one()
-            user.groups.append(group)
+            id.groups.append(group)
         DBSession.flush()
 
         return user

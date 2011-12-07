@@ -28,6 +28,7 @@ from apex.lib.libapex import get_module
 from apex.lib.flash import flash
 from apex.lib.form import ExtendedForm
 from apex.models import AuthGroup
+from apex.models import AuthID
 from apex.models import AuthUser
 from apex.models import DBSession
 from apex.forms import ChangePasswordForm
@@ -52,7 +53,7 @@ def login(request):
     """
     title = _('You need to login')
     came_from = get_came_from(request)
-    if 'local' not in apex_settings('provider_exclude', []):
+    if not apex_settings('exclude_local'):
         if asbool(apex_settings('use_recaptcha_on_login')):
             if apex_settings('recaptcha_public_key') and apex_settings('recaptcha_private_key'):
                 LoginForm.captcha = RecaptchaField(
@@ -71,7 +72,7 @@ def login(request):
     if request.method == 'POST' and form.validate():
         user = AuthUser.get_by_username(form.data.get('username'))
         if user:
-            headers = apex_remember(request, user.id)
+            headers = apex_remember(request, user.auth_id)
             return HTTPFound(location=came_from, headers=headers)
 
     return {'title': title, 'form': form, 'velruse_forms': velruse_forms, \
@@ -96,7 +97,7 @@ def change_password(request):
     form = ChangePasswordForm(request.POST)
 
     if request.method == 'POST' and form.validate():
-        user = AuthUser.get_by_id(authenticated_userid(request))
+        user = AuthID.get_by_id(authenticated_userid(request))
         user.password = form.data['password']
         DBSession.merge(user)
         DBSession.flush()
@@ -163,7 +164,7 @@ def reset_password(request):
                captcha={'ip_address': request.environ['REMOTE_ADDR']})
     if request.method == 'POST' and form.validate():
         user_id = request.matchdict.get('user_id')
-        user = AuthUser.get_by_id(user_id)
+        user = AuthID.get_by_id(user_id)
         submitted_hmac = request.matchdict.get('hmac')
         current_time = time.time()
         time_key = int(base64.b64decode(submitted_hmac[10:]))
@@ -188,7 +189,7 @@ def activate(request):
     """
     """
     user_id = request.matchdict.get('user_id')
-    user = AuthUser.get_by_id(user_id)
+    user = AuthID.get_by_id(user_id)
     submitted_hmac = request.matchdict.get('hmac')
     current_time = time.time()
     time_key = int(base64.b64decode(submitted_hmac[10:]))
@@ -222,7 +223,7 @@ def register(request):
     else:
         from apex.forms import RegisterForm
 
-    if 'local' not in apex_settings('provider_exclude', []):
+    if not apex_settings('exclude_local'):
         if asbool(apex_settings('use_recaptcha_on_register')):
             if apex_settings('recaptcha_public_key') and apex_settings('recaptcha_private_key'):
                 RegisterForm.captcha = RecaptchaField(
@@ -257,21 +258,23 @@ def apex_callback(request):
         if auth:
             user = AuthUser.get_by_login(auth['apexid'])
             if not user:
+                id = AuthID()
+                DBSession.add(id)
                 user = AuthUser(
                     login=auth['apexid'],
                 )
                 if auth['profile'].has_key('verifiedEmail'):
                     user.email = auth['profile']['verifiedEmail']
-                DBSession.add(user)
+                id.users.append(user)
                 if apex_settings('default_user_group'):
                     for name in apex_settings('default_user_group'). \
                                               split(','):
                         group = DBSession.query(AuthGroup). \
                            filter(AuthGroup.name==name.strip()).one()
-                        user.groups.append(group)
+                        id.groups.append(group)
                 if apex_settings('create_openid_after'):
                     openid_after = get_module(apex_settings('create_openid_after'))
-                    request = openid_after().after_signup(request, user)
+                    openid_after().after_signup(user)
                 DBSession.flush()
             if apex_settings('openid_required'):
                 openid_required = False
@@ -279,7 +282,8 @@ def apex_callback(request):
                     if not getattr(user, required):
                         openid_required = True
                 if openid_required:
-                    request.session['id'] = user.id
+                    request.session['id'] = id.id
+                    request.session['userid'] = user.id
                     return HTTPFound(location='%s?came_from=%s' % \
                         (route_url('apex_openid_required', request), \
                         request.GET.get('came_from', \
@@ -318,7 +322,11 @@ def openid_required(request):
                captcha={'ip_address': request.environ['REMOTE_ADDR']})
 
     if request.method == 'POST' and form.validate():
-        user = AuthUser.get_by_id(request.session['id'])
+        """
+            need to have the AuthUser id that corresponds to the login
+            method.
+        """
+        user = AuthUser.get_by_id(request.session['userid'])
         for required in apex_settings('openid_required').split(','):
             setattr(user, required, form.data[required])
         DBSession.merge(user)

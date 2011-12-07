@@ -5,7 +5,8 @@ except ImportError:
 
 import urlparse
 
-from velruse.app import parse_config_file
+import velruse.store.sqlstore
+from velruse.utils import splitlines
 from velruse.store.sqlstore import KeyStorage
 
 from sqlalchemy.orm.exc import NoResultFound
@@ -33,6 +34,7 @@ from apex.forms import YahooLogin
 from apex.forms import WindowsLiveLogin
 from apex.forms import TwitterLogin
 from apex.models import DBSession
+from apex.models import AuthID
 from apex.models import AuthUser
 from apex.models import AuthGroup
 from apex.models import AuthUserLog
@@ -90,40 +92,18 @@ If you did not make this request, you can safely ignore it.
 """),
         }
 
-def apexid_from_url(provider, identifier):
-    """
-    returns the login ID for apex
-    """
+auth_id_prefix = {
+    'facebook.com':'F',
+    'twitter.com':'T',
+    'google.com':'G',
+    'yahoo.com':'Y',
+    'live.com':'L',
+}
+
+def apexid_from_auth(auth_info):
     id = None
-    if provider == 'Google':
-        try:
-            id = '$G$%s' % \
-                 urlparse.parse_qs(urlparse.urlparse(identifier).query)['id'][0]
-        except KeyError:
-            pass
-    elif provider == 'Facebook':
-        path = urlparse.urlparse(identifier).path[1:]
-        if path:
-            try:
-                id = '$F$%s' % path
-            except:
-                pass
-    elif provider == 'Twitter':
-        try:
-            id = '$T$%s' % \
-                 urlparse.parse_qs(urlparse.urlparse(identifier).query) \
-                     ['id'][0].split('\'')[1]
-        except KeyError:
-            pass
-    elif provider == 'Yahoo':
-        urlparts = urlparse.urlparse(identifier)
-        try:
-            id = '$Y$%s#%s' % \
-                 (urlparts.path.split('/')[2], urlparts.fragment)
-        except:
-            pass
-    elif provider == "OpenID":
-        id = '$O$%s' % identifier
+    id = '$%s$%s' % (auth_id_prefix[auth_info['domain']],
+                     auth_info['userid'])
     return id
 
 def apexid_from_token(token):
@@ -133,8 +113,7 @@ def apexid_from_token(token):
     auth = json.loads(dbsession.query(KeyStorage.value). \
                       filter(KeyStorage.key==token).one()[0])
     if 'profile' in auth:
-        id = apexid_from_url(auth['profile']['providerName'], \
-                             auth['profile']['identifier'])
+        id = apexid_from_auth(auth['profile']['accounts'][0])
         auth['apexid'] = id
         return auth
     return None
@@ -143,7 +122,7 @@ def groupfinder(userid, request):
     """ Returns ACL formatted list of groups for the userid in the
     current request
     """
-    auth = AuthUser.get_by_id(userid)
+    auth = AuthID.get_by_id(userid)
     if auth:
         return [('group:%s' % group.name) for group in auth.groups]
 
@@ -263,13 +242,10 @@ def generate_velruse_forms(request, came_from):
     the CONFIG.yaml file
     """
     velruse_forms = []
-    if apex_settings('velruse_config'):
-        configs = parse_config_file(apex_settings('velruse_config'))[0].keys()
-        if apex_settings('provider_exclude'):
-            for provider in apex_settings('provider_exclude').split(','):
-                if provider.strip() in configs:
-                    configs.remove(provider.strip())
-        for provider in configs:
+    providers = apex_settings('velruse_providers', None)
+    if providers:
+        providers = [x.strip() for x in providers.split(',')]
+        for provider in providers:
             if provider_forms.has_key(provider):
                 form = provider_forms[provider](
                     end_point='%s?csrf_token=%s&came_from=%s' % \
@@ -278,8 +254,6 @@ def generate_velruse_forms(request, came_from):
                       came_from), \
                      csrf_token = request.session.get_csrf_token(),
                 )
-                if provider == 'facebook':
-                    form.scope.data = apex_settings('velruse_facebook_scope')
                 velruse_forms.append(form)
     return velruse_forms
 
@@ -311,5 +285,5 @@ class RequestFactory(Request):
     def user(self):
         user = None
         if authenticated_userid(self):
-            user = AuthUser.get_by_id(authenticated_userid(self))
+            user = AuthID.get_by_id(authenticated_userid(self))
         return user

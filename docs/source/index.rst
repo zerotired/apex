@@ -6,6 +6,25 @@
 Welcome to Apex's documentation!
 ================================
 
+::
+
+    WARNING!!! Velruse has changed substantially.  Apex acts more as a
+    wrapper to Velruse since Velruse brought in a lot of functionality
+    and now has Pyramid as a dependency. In addition, Apex has been
+    modified to allow a single Auth Identity to have multiple
+    authentication providers. 
+
+    Currently, Twitter has an odd connection close bug related to paste.http,
+    Mac OS/X Lion and webkit enabled browsers. Using CherryPy for development 
+    will work around this.
+
+::
+    [server:main]
+    #use = egg:Paste#http
+    use = egg:PasteScript#cherrypy
+    host = 0.0.0.0
+    port = 8080
+
 **Quick Overview**
 
 Apex is a framework that works on top of Pyramid_ focused on simplifying

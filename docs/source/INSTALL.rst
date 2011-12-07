@@ -1,12 +1,29 @@
 Installation Instructions
 =========================
 
-Temporarily, 1.2a1 as installed from easy_install pyramid has a bug with
-the Root Factory. You'll need to install Pyramid from Github:
+Temporarily, you'll need Velruse from Github which contains two
+OpenID fixes.  You'll need to install Velruse from Github:
 
 ::
 
-    easy_install -U https://github.com/Pylons/pyramid/tarball/master
+    easy_install -U https://github.com/bbangert/velruse/tarball/master
+
+If you are converting from an older version of Apex, you'll need to
+convert your database over to the new format.
+
+::
+
+    insert into auth_id (id) select id from auth_users;
+    update auth_users set auth_id=id;
+
+
+To use translations, you will need to use the following version of wtforms until it is pulled into the master
+
+::
+
+    easy_install -U https://bitbucket.org/kiorky/wtforms/get/77a9e3f0e0cd.tar.bz2
+
+    https://bitbucket.org/kiorky/wtforms
 
 **__init__.py**
 
