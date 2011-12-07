@@ -143,7 +143,6 @@ class AuthUser(Base):
     id = Column(types.Integer(), primary_key=True)
     auth_id = Column(types.Integer, ForeignKey(AuthID.id), index=True)
     login = Column(Unicode(80), default=u'', index=True)
-    username = Column(Unicode(80), default=u'', index=True)
     salt = Column(Unicode(24))
     _password = Column('password', Unicode(80), default=u'')
     email = Column(Unicode(80), default=u'', index=True)
