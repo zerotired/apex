@@ -48,24 +48,25 @@ To use translations, you will need to use the following version of wtforms until
     apex.use_recaptcha_on_forgot = false
     apex.use_recaptcha_on_reset = false
     apex.use_recaptcha_on_register = true
-    apex.provider_exclude = openid
-    # comma separated list of providers to exclude even if OpenID settings are
-    # set in the config file
+    apex.no_csrf = login,apex_callback
+    # comma separated list of providers to use
+    apex.velruse_providers = twitter
     apex.register_form_class = package.forms.MyRegisterForm
-
-    # Apex looks at the Auth Providers configured by Velruse to build the login
-    # page
 
     [app:velruse]
     use = egg:velruse
-    config_file = %(here)s/CONFIG.yaml
-    beaker.session.data_dir = %(here)s/data/sdata
-    beaker.session.lock_dir = %(here)s/data/slock
-    beaker.session.key = velruse
-    beaker.session.secret = somesecret
-    beaker.session.type = cookie
-    beaker.session.validate_key = STRONG_KEY_HERE
-    beaker.session.cookie_domain = .domain.com
+    debug = false
+    velruse.endpoint = http://domain.com/auth/apex_callback
+    velruse.store = velruse.store.sqlstore
+    velruse.store.url = mysql://username:password@localhost/database?use_unicode=0&charset=utf8
+    velruse.openid.store = openid.store.memstore:MemoryStore
+    velruse.openid.realm = http://domain.com/
+
+    velruse.providers =
+        velruse.providers.twitter
+
+    velruse.twitter.consumer_key = 
+    velruse.twitter.consumer_secret =
 
     [composite:main]
     use = egg:Paste#urlmap
@@ -74,6 +75,9 @@ To use translations, you will need to use the following version of wtforms until
 
     [filter:exc]
     use=egg:WebError#evalerror
+
+    [filter:tm]
+    use=egg:repoze.tm2#tm
 
     [pipeline:pexample]
     pipeline = exc tm example

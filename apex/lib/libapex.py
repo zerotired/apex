@@ -93,11 +93,16 @@ If you did not make this request, you can safely ignore it.
         }
 
 auth_id_prefix = {
+    'google.com':'G',
     'facebook.com':'F',
     'twitter.com':'T',
-    'google.com':'G',
     'yahoo.com':'Y',
     'live.com':'L',
+    'bitbucket.com':'BB',
+    'github.com':'GH',
+    'identi.ca':'IC',
+    'last.fm':'LFM',
+    'linkedin.com':'LNK',
 }
 
 def apexid_from_auth(auth_info):
@@ -150,6 +155,11 @@ provider_forms = {
     'yahoo': YahooLogin,
     'live': WindowsLiveLogin,
     'facebook': FacebookLogin,
+    'bitbucket': BitbucketLogin,
+    'github': GithubLogin,
+    'identica': IdenticaLogin,
+    'lastfm': LastfmLogin,
+    'linkedin': LinkedinLogin,
 }
 
 def apex_email(request, recipients, subject, body, sender=None):

@@ -19,6 +19,7 @@ Welcome to Apex's documentation!
     will work around this.
 
 ::
+
     [server:main]
     #use = egg:Paste#http
     use = egg:PasteScript#cherrypy

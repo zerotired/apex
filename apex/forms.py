@@ -157,5 +157,25 @@ class WindowsLiveLogin(OAuthForm):
     provider_name = 'live'
     provider_proper_name = 'Microsoft Live'
 
+class BitbucketLogin(OAuthForm):
+    provider_name = 'bitbucket'
+    provider_proper_name = 'Bitbucket'
+
+class GithubLogin(OAuthForm):
+    provider_name = 'github'
+    provider_proper_name = 'Github'
+
+class IdenticaLogin(OAuthForm):
+    provider_name = 'identica'
+    provider_proper_name = 'Identi.ca'
+
+class LastfmLogin(OAuthForm):
+    provider_name = 'lastfm'
+    provider_proper_name = 'Last.fm'
+
+class LinkedinLogin(OAuthForm):
+    provider_name = 'linkedin'
+    provider_proper_name = 'LinkedIn'
+
 class OpenIDRequiredForm(ExtendedForm):
     pass

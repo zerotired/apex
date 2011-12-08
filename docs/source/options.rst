@@ -83,7 +83,7 @@ apex.use_apex_edit = false
   simple function.
 
 apex.no_csrf = 
-  OPTIONAL, a colon separated list of route names that should NOT be subject
+  OPTIONAL, a comma separated list of route names that should NOT be subject
   to CSRF tests.
 
 **Email Settings**
