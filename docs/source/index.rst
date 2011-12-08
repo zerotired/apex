@@ -41,7 +41,7 @@ Uses pyramid_routesalchemy
 
 **Authentication**
 
-  * Local authentication uses BCrypt
+  * Local authentication uses salt + BCrypt
   * http://codahale.com/how-to-safely-store-a-password/
 
 Velruse_ is used for OpenID/OpenAuth providers and supports:
@@ -50,6 +50,11 @@ Velruse_ is used for OpenID/OpenAuth providers and supports:
   * Twitter
   * Yahoo
   * Microsoft Live
+  * Bitbucket
+  * Github
+  * Identi.ca
+  * Last.fm
+  * LinkedIn
   * Any OpenID provider
 
 Ability to overload the login form, extend the AuthUser class through

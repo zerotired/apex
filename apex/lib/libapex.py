@@ -27,12 +27,17 @@ from pyramid_mailer import get_mailer
 from pyramid_mailer.message import Message
 
 from apex import MessageFactory as _
-from apex.forms import OpenIdLogin
-from apex.forms import GoogleLogin
-from apex.forms import FacebookLogin
-from apex.forms import YahooLogin
-from apex.forms import WindowsLiveLogin
-from apex.forms import TwitterLogin
+from apex.forms import (OpenIdLogin,
+                        GoogleLogin,
+                        FacebookLogin,
+                        YahooLogin,
+                        WindowsLiveLogin,
+                        TwitterLogin,
+                        BitbucketLogin,
+                        GithubLogin,
+                        LastfmLogin,
+                        IdenticaLogin,
+                        LinkedinLogin)
 from apex.models import DBSession
 from apex.models import AuthID
 from apex.models import AuthUser
@@ -219,11 +224,13 @@ def apex_settings(key=None, default=None):
 
 def create_user(**kwargs):
     """
+
 ::
 
     from apex.lib.libapex import create_user
 
     create_user(username='test', password='my_password', active='Y', group='group')
+
 
     Returns: AuthUser object
     """

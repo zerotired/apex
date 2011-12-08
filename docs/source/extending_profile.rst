@@ -6,6 +6,7 @@ If you are using a local authentication database:
 **models/__init__.py**
 
 ::
+
     from apex.models import AuthID
 
     class ForeignKeyProfile(Base):

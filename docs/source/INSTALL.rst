@@ -1,8 +1,8 @@
 Installation Instructions
 =========================
 
-Temporarily, you'll need Velruse from Github which contains two
-OpenID fixes.  You'll need to install Velruse from Github:
+You'll need Velruse from Github to support many of the new features.
+You'll need to install Velruse from Github:
 
 ::
 
@@ -41,7 +41,6 @@ To use translations, you will need to use the following version of wtforms until
     apex.session_secret = asdfasdf
     apex.auth_secret = abcdefgh
     apex.came_from_route = index
-    apex.velruse_config = %(here)s/CONFIG.yaml
     apex.recaptcha_public_key = asdfasdf
     apex.recaptcha_private_key = asdfasdf
     apex.use_recaptcha_on_login = false

@@ -105,7 +105,7 @@ apex.email_message_text = apex.lib.libapex.EmailMessageText
 apex.use_request_factory = true
   OPTIONAL, use apex's default request factory
 
-** Fallback Authorization **
+**Fallback Authorization**
 
 Fallback Authorization is optional and is used for transitioning a 
 local user authentication table over to a native Apex salt+BCrypt. If

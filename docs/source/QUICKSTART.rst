@@ -50,7 +50,9 @@ For Velruse, we need to add the following:
 ::
 
     [app:velruse]
-    velruse.end_point = http://domain.com/auth/apex_callback
+    use = egg:velruse
+    debug = false
+    velruse.endpoint = http://domain.com/auth/apex_callback
     velruse.store = velruse.store.sqlstore
     velruse.store.url = mysql://username:password@localhost/database?use_unicode=0&charset=utf8
     velruse.openid.store = openid.store.memstore:MemoryStore
@@ -66,14 +68,6 @@ For Velruse, we need to add the following:
     velruse.twitter.consumer_key = 1111111111111111111111
     velruse.twitter.consumer_secret = 111111111111111111111111111111111111111111
 
-    use = egg:velruse
-    beaker.session.data_dir = %(here)s/data/sdata
-    beaker.session.lock_dir = %(here)s/data/slock
-    beaker.session.key = velruse
-    beaker.session.secret = somesecret
-    beaker.session.type = cookie
-    beaker.session.validate_key = STRONG_KEY_HERE
-    beaker.session.cookie_domain = .domain.com
 
 Comment or remove the following settings:
 
@@ -106,23 +100,10 @@ If you are going to be developing with this virtualenv:
 
     python setup.py develop
 
-Create your CONFIG.yaml file for Velruse. Currently, we need to access the
-backing store, so, we've opted to use Type: SQL. You can use any store as
-long as the backend can be read without calling /velruse/authinfo. The
-Memory Store requires the additional urllib2 call.
-
-**CONFIG.yaml**
-
-::
-
-    Store:
-        Type: SQL
-        DB: mysql://username:password@localhost/database?use_unicode=1&charset=utf8
-    OpenID:
-        Realm: http://domain.com
-        Endpoint Regex: http://domain.com
-    OpenID Store:
-        Type: openid.store.memstore:MemoryStore
+Currently, we need to access the backing store, so, we've opted to use 
+Type: SQL. You can use any store as long as the backend can be read 
+without calling /velruse/authinfo. The Memory Store requires the 
+additional urllib2 call.
 
 In **example/__init__.py**, before the return config.make_wsgi_app(), put:
 

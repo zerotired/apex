@@ -67,6 +67,17 @@ class AuthGroup(Base):
     
 
 class AuthID(Base):
+    """ Table name: auth_id
+
+::
+
+    id = Column(types.Integer(), primary_key=True)
+    display_name = Column(Unicode(80), default=u'')
+    active = Column(types.Enum(u'Y',u'N',u'D', name=u"active"), default=u'Y')
+    created = Column(types.DateTime(), default=func.now())
+
+    """
+
     __tablename__ = 'auth_id'
     __table_args__ = {"sqlite_autoincrement": True}
 
@@ -128,6 +139,14 @@ class AuthID(Base):
             resolver = DottedNameResolver(auth_profile.split('.')[0])
             profile_cls = resolver.resolve(auth_profile)
             return get_or_create(DBSession, profile_cls, user_id=self.id)
+
+    @property
+    def group_list(self):
+        group_list = []
+        if self.groups:
+            for group in self.groups:
+                group_list.append(group.name)
+        return ','.join( map( str, group_list ) )
 
 class AuthUser(Base):
     """ Table name: auth_users
