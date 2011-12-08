@@ -250,10 +250,8 @@ class AuthUser(Base):
         if fallback_auth:
             resolver = DottedNameResolver(fallback_auth.split('.', 1)[0])
             fallback = resolver.resolve(fallback_auth)
-            blah = fallback().check(DBSession, request, user, \
+            return fallback().check(DBSession, request, user, \
                        kwargs['password'])
-            print 'return', blah
-            return blah
 
         return False
 
