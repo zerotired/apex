@@ -17,7 +17,7 @@ from apex.lib.form import ExtendedForm
 class RegisterForm(ExtendedForm):
     """ Registration Form
     """
-    username = TextField(_('Username'), [validators.Required(), \
+    login = TextField(_('Username'), [validators.Required(), \
                          validators.Length(min=4, max=25)])
     password = PasswordField(_('Password'), [validators.Required(), \
                              validators.EqualTo('password2', \
@@ -26,15 +26,15 @@ class RegisterForm(ExtendedForm):
     email = TextField(_('Email Address'), [validators.Required(), \
                       validators.Email()])
 
-    def validate_username(form, field):
-        if AuthUser.get_by_username(field.data) is not None:
+    def validate_login(form, field):
+        if AuthUser.get_by_login(field.data) is not None:
             raise validators.ValidationError(_('Sorry that username already exists.'))
 
-    def create_user(self, username):
+    def create_user(self, login):
         id = AuthID()
         DBSession.add(id)
         user = AuthUser(
-            login=username,
+            login=login,
             password=self.data['password'],
             email=self.data['email'],
         )
@@ -50,7 +50,7 @@ class RegisterForm(ExtendedForm):
         return user
 
     def save(self):
-        new_user = self.create_user(self.data['username'])
+        new_user = self.create_user(self.data['login'])
         self.after_signup(new_user)
 
         return new_user
@@ -79,18 +79,18 @@ class ChangePasswordForm(ExtendedForm):
             raise validators.ValidationError(_('Your old password doesn\'t match'))
 
 class LoginForm(ExtendedForm):
-    username = TextField(_('Username'), validators=[validators.Required()])
+    login = TextField(_('Username'), validators=[validators.Required()])
     password = PasswordField(_('Password'), validators=[validators.Required()])
 
     def clean(self):
         errors = []
-        if not AuthUser.check_password(username=self.data.get('username'), \
+        if not AuthUser.check_password(login=self.data.get('login'), \
                                        password=self.data.get('password')):
             errors.append(_('Login Error -- please try again'))
         return errors
 
 class ForgotForm(ExtendedForm):
-    username = TextField(_('Username'))
+    login = TextField(_('Username'), [validators.Optional()])
     label = HiddenField(label='Or')
     email = TextField(_('Email Address'), [validators.Optional(), \
                                            validators.Email()])
@@ -105,8 +105,8 @@ class ForgotForm(ExtendedForm):
         information, however, that is an enhancement that will be added
         at a later point.
     """
-    def validate_username(form, field):
-        if AuthUser.get_by_username(field.data) is None:
+    def validate_login(form, field):
+        if AuthUser.get_by_login(field.data) is None:
             raise validators.ValidationError(_('Sorry that username doesn\'t exist.'))
 
     def validate_email(form, field):
@@ -115,7 +115,7 @@ class ForgotForm(ExtendedForm):
 
     def clean(self):
         errors = []
-        if not self.data.get('username') and not self.data.get('email'):
+        if not self.data.get('login') and not self.data.get('email'):
             errors.append(_('You need to specify either a Username or ' \
                             'Email address'))
         return errors

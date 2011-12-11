@@ -68,7 +68,7 @@ def login(request):
     velruse_forms = generate_velruse_forms(request, came_from)
 
     if request.method == 'POST' and form.validate():
-        user = AuthUser.get_by_username(form.data.get('username'))
+        user = AuthUser.get_by_login(form.data.get('login'))
         if user:
             headers = apex_remember(request, user.auth_id)
             return HTTPFound(location=came_from, headers=headers)
@@ -130,14 +130,14 @@ def forgot_password(request):
         """
         if form.data['email']:
             user = AuthUser.get_by_email(form.data['email'])
-            if user.login:
+            if user.provider != 'local':
                 provider_name = user.provider
                 flash(_('You used %s as your login provider' % \
                      provider_name))
                 return HTTPFound(location=route_url('apex_login', \
                                           request))
-        if form.data['username']:
-            user = AuthUser.get_by_username(form.data['username'])
+        if form.data['login']:
+            user = AuthUser.get_by_login(form.data['login'])
         if user:
             timestamp = time.time()+3600
             hmac_key = hmac.new('%s:%s:%d' % (str(user.id), \

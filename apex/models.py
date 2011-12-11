@@ -227,17 +227,17 @@ class AuthUser(Base):
         return DBSession.query(cls).filter(cls.login==login).first()
 
     @classmethod
-    def get_by_username(cls, username):
+    def get_by_login(cls, login):
         """ 
-        Returns AuthUser object or None by username
+        Returns AuthUser object or None by login
 
         .. code-block:: python
 
            from apex.models import AuthUser
 
-           user = AuthUser.get_by_username('username')
+           user = AuthUser.get_by_login('login')
         """
-        return DBSession.query(cls).filter(cls.login==username).first()
+        return DBSession.query(cls).filter(cls.login==login).first()
 
     @classmethod
     def get_by_email(cls, email):
@@ -256,8 +256,8 @@ class AuthUser(Base):
     def check_password(cls, **kwargs):
         if kwargs.has_key('id'):
             user = cls.get_by_id(kwargs['id'])
-        if kwargs.has_key('username'):
-            user = cls.get_by_username(kwargs['username'])
+        if kwargs.has_key('login'):
+            user = cls.get_by_login(kwargs['login'])
 
         if not user:
             return False
