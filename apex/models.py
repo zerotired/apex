@@ -101,6 +101,12 @@ class AuthID(Base):
     login_log = relationship('AuthUserLog', \
                          order_by='AuthUserLog.id')
 
+    def in_group(self, group):
+        """
+        Returns True or False if the user is or isn't in the group.
+        """
+        return group in [g.name for g in self.groups]
+
     @classmethod
     def get_by_id(cls, id):
         """ 
@@ -164,6 +170,7 @@ class AuthUser(Base):
 
     id = Column(types.Integer(), primary_key=True)
     auth_id = Column(types.Integer, ForeignKey(AuthID.id), index=True)
+    provider = Column(Unicode(80), default=u'local', index=True)
     login = Column(Unicode(80), default=u'', index=True)
     salt = Column(Unicode(24))
     _password = Column('password', Unicode(80), default=u'')
@@ -192,12 +199,6 @@ class AuthUser(Base):
         m.update(word)
 
         return unicode(m.hexdigest()[:length])
-
-    def in_group(self, group):
-        """
-        Returns True or False if the user is or isn't in the group.
-        """
-        return group in [g.name for g in self.groups]
 
     @classmethod
     def get_by_id(cls, id):

@@ -19,10 +19,8 @@ from pyramid.url import route_url
 
 from apex.lib.db import merge_session_with_post
 from apex.lib.libapex import apex_settings
-from apex.lib.libapex import apexid_from_token
 from apex.lib.libapex import apex_email_forgot
 from apex.lib.libapex import apex_remember
-from apex.lib.libapex import auth_provider
 from apex.lib.libapex import generate_velruse_forms
 from apex.lib.libapex import get_module
 from apex.lib.flash import flash
@@ -90,6 +88,9 @@ def logout(request):
 def change_password(request):
     """ change_password(request):
     no return value, called with route_url('apex_change_password', request)
+    FIXME doesn't adjust auth_user based on local ID, how do we handle multiple
+        IDs that are local? Do we tell person that they don't have local
+        permissions?
     """
     title = _('Change your Password')
 
@@ -97,7 +98,11 @@ def change_password(request):
     form = ChangePasswordForm(request.POST)
 
     if request.method == 'POST' and form.validate():
-        user = AuthID.get_by_id(authenticated_userid(request))
+        #user = AuthID.get_by_id(authenticated_userid(request))
+        #FIXME deal with multiple local user accounts
+        user = DBSession.query(AuthUser). \
+                   filter(AuthUser.auth_id==authenticated_userid(request)). \
+                   filter(AuthUser.provider=='local').first()
         user.password = form.data['password']
         DBSession.merge(user)
         DBSession.flush()
@@ -127,7 +132,7 @@ def forgot_password(request):
         if form.data['email']:
             user = AuthUser.get_by_email(form.data['email'])
             if user.login:
-                provider_name = auth_provider.get(user.login[1], 'Unknown')
+                provider_name = user.provider
                 flash(_('You used %s as your login provider' % \
                      provider_name))
                 return HTTPFound(location=route_url('apex_login', \
@@ -256,12 +261,13 @@ def apex_callback(request):
     if 'token' in request.POST:
         auth = apexid_from_token(request.POST['token'])
         if auth:
-            user = AuthUser.get_by_login(auth['apexid'])
+            user = AuthUser.get_by_login(auth['userid'])
             if not user:
                 id = AuthID()
                 DBSession.add(id)
                 user = AuthUser(
-                    login=auth['apexid'],
+                    login=auth_info['userid'],
+                    provider=auth_info['domain'],
                 )
                 if auth['profile'].has_key('verifiedEmail'):
                     user.email = auth['profile']['verifiedEmail']

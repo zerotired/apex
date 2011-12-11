@@ -44,15 +44,6 @@ from apex.models import AuthUser
 from apex.models import AuthGroup
 from apex.models import AuthUserLog
 
-auth_provider = {
-    'G':'Google',
-    'F':'Facebook',
-    'T':'Twitter',
-    'Y':'Yahoo',
-    'O':'OpenID',
-    'M':'Microsoft Live',
-}
-
 class EmailMessageText(object):
     """ Default email message text class
     """
@@ -97,25 +88,6 @@ If you did not make this request, you can safely ignore it.
 """),
         }
 
-auth_id_prefix = {
-    'google.com':'G',
-    'facebook.com':'F',
-    'twitter.com':'T',
-    'yahoo.com':'Y',
-    'live.com':'L',
-    'bitbucket.com':'BB',
-    'github.com':'GH',
-    'identi.ca':'IC',
-    'last.fm':'LFM',
-    'linkedin.com':'LNK',
-}
-
-def apexid_from_auth(auth_info):
-    id = None
-    id = '$%s$%s' % (auth_id_prefix[auth_info['domain']],
-                     auth_info['userid'])
-    return id
-
 def apexid_from_token(token):
     """ Returns the apex id from the OpenID Token
     """
@@ -123,8 +95,8 @@ def apexid_from_token(token):
     auth = json.loads(dbsession.query(KeyStorage.value). \
                       filter(KeyStorage.key==token).one()[0])
     if 'profile' in auth:
-        id = apexid_from_auth(auth['profile']['accounts'][0])
-        auth['apexid'] = id
+        auth['id'] = auth['profile']['accounts'][0]['userid']
+        auth['provider'] = auth['profile']['accounts'][0]['domain']
         return auth
     return None
 
