@@ -1,7 +1,9 @@
 Installation Instructions
 =========================
 
-You'll need Velruse from Github to support many of the new features.
+You'll need Velruse from Github to support many of the new features. If
+you are using Velruse from pypi, do NOT use this branch.
+
 You'll need to install Velruse from Github:
 
 ::

@@ -128,3 +128,9 @@ apex.fallback_prefix_salt =
 
 apex.fallback_salt_field = 
   OPTIONAL, field in user table containing salt
+
+==Future==
+
+apex.max_local_logins = 1
+  OPTIONAL, controls the number of local authentication records that can
+  be assigned to a single user.
