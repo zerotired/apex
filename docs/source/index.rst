@@ -58,7 +58,7 @@ Velruse_ is used for OpenID/OpenAuth providers and supports:
   * Any OpenID provider
 
 Ability to overload the login form, extend the AuthUser class through
-polymorphism or a Foreign Key user profile table.
+a Foreign Key user profile table.
 
 **Form Library**
 

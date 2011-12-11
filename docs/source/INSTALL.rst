@@ -14,7 +14,15 @@ convert your database over to the new format.
 ::
 
     insert into auth_id (id) select id from auth_users;
+    alter table auth_users add provider varchar(80) default '' after auth_id;
+    create unique index login_provider on auth_users (login,provider);
     update auth_users set auth_id=id;
+    update auth_users set login=username,provider='local' where login='';
+    alter table auth_users drop username;
+
+    update auth_users set provider='google.com',login=replace(login,'$G$','') where login like '$G$%';
+    update auth_users set provider='facebook.com',login=replace(login,'$F$','') where login like '$F$%';
+    update auth_users set provider='twitter.com',login=replace(login,'$T$','') where login like '$T$%';
 
 
 To use translations, you will need to use the following version of wtforms until it is pulled into the master
