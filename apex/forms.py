@@ -65,8 +65,7 @@ class RegisterForm(ExtendedForm):
 class ChangePasswordForm(ExtendedForm):
     """ Change Password Form
     """
-    #FIXME deal with multiple local user ids
-    #username = HiddenField()
+    user_id = HiddenField('')
     old_password = PasswordField(_('Old Password'), [validators.Required()])
     password = PasswordField(_('New Password'), [validators.Required(), \
                              validators.EqualTo('password2', \

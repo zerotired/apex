@@ -95,14 +95,13 @@ def change_password(request):
     title = _('Change your Password')
 
     came_from = get_came_from(request)
-    form = ChangePasswordForm(request.POST)
+    user = DBSession.query(AuthUser). \
+               filter(AuthUser.auth_id==authenticated_userid(request)). \
+               filter(AuthUser.provider=='local').first()
+    form = ChangePasswordForm(request.POST, user_id=user.id)
 
     if request.method == 'POST' and form.validate():
         #user = AuthID.get_by_id(authenticated_userid(request))
-        #FIXME deal with multiple local user accounts
-        user = DBSession.query(AuthUser). \
-                   filter(AuthUser.auth_id==authenticated_userid(request)). \
-                   filter(AuthUser.provider=='local').first()
         user.password = form.data['password']
         DBSession.merge(user)
         DBSession.flush()
