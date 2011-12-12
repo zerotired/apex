@@ -177,6 +177,7 @@ def reset_password(request):
                                 apex_settings('auth_secret'), time_key), \
                                 user.email).hexdigest()[0:10]
             if hmac_key == submitted_hmac[0:10]:
+                #FIXME reset email, no such attribute email
                 user.password = form.data['password']
                 DBSession.merge(user)
                 DBSession.flush()
