@@ -29,7 +29,7 @@ class GenericFallback(object):
             prefix_salt = getattr(user, salt_field)
             salted_passwd = '%s%s' % (prefix_salt, salted_passwd)
 
-        if salted_password is not None:
+        if salted_passwd is not None:
             if len(salted_passwd) == 32:
                 # md5
                 m = hashlib.md5()
