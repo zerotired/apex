@@ -29,31 +29,32 @@ class GenericFallback(object):
             prefix_salt = getattr(user, salt_field)
             salted_passwd = '%s%s' % (prefix_salt, salted_passwd)
 
-        if len(salted_passwd) == 32:
-            # md5
-            m = hashlib.md5()
-            m.update(password)
-            if m.hexdigest() == salted_passwd:
+        if salted_password is not None:
+            if len(salted_passwd) == 32:
+                # md5
+                m = hashlib.md5()
+                m.update(password)
+                if m.hexdigest() == salted_passwd:
+                    user.password = password
+                    DBSession.merge(user)
+                    DBSession.flush()
+                    return True
+
+            if len(salted_passwd) == 40:
+                # sha1
+                m = hashlib.sha1()
+                m.update(password)
+                if m.hexdigest() == salted_passwd:
+                    user.password = password
+                    DBSession.merge(user)
+                    DBSession.flush()
+                    return True
+
+            if salted_passwd == password:
+                # plaintext
                 user.password = password
                 DBSession.merge(user)
                 DBSession.flush()
                 return True
-
-        if len(salted_passwd) == 40:
-            # sha1
-            m = hashlib.sha1()
-            m.update(password)
-            if m.hexdigest() == salted_passwd:
-                user.password = password
-                DBSession.merge(user)
-                DBSession.flush()
-                return True
-
-        if salted_passwd == password:
-            # plaintext
-            user.password = password
-            DBSession.merge(user)
-            DBSession.flush()
-            return True
 
         return False
