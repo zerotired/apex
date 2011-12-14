@@ -261,9 +261,12 @@ class AuthUser(Base):
 
         if not user:
             return False
-        if BCRYPTPasswordManager().check(user.password,
-            '%s%s' % (kwargs['password'], user.salt)):
-            return True
+        try:
+            if BCRYPTPasswordManager().check(user.password,
+                '%s%s' % (kwargs['password'], user.salt)):
+                return True
+        except TypeError:
+            pass
 
         request = get_current_request()
         fallback_auth = request.registry.settings.get('apex.fallback_auth')
