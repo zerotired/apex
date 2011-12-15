@@ -18,11 +18,12 @@ from pyramid.url import current_route_url
 from pyramid.url import route_url
 
 from apex.lib.db import merge_session_with_post
-from apex.lib.libapex import apex_settings
-from apex.lib.libapex import apex_email_forgot
-from apex.lib.libapex import apex_remember
-from apex.lib.libapex import generate_velruse_forms
-from apex.lib.libapex import get_module
+from apex.lib.libapex import (apex_email_forgot,
+                              apexid_from_token,
+                              apex_remember,
+                              apex_settings,
+                              generate_velruse_forms,
+                              get_module)
 from apex.lib.flash import flash
 from apex.lib.form import ExtendedForm
 from apex.models import AuthGroup

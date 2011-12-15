@@ -222,19 +222,6 @@ class AuthUser(Base):
 
            from apex.models import AuthUser
 
-           user = AuthUser.get_by_login('$G$1023001')
-        """
-        return DBSession.query(cls).filter(cls.login==login).first()
-
-    @classmethod
-    def get_by_login(cls, login):
-        """ 
-        Returns AuthUser object or None by login
-
-        .. code-block:: python
-
-           from apex.models import AuthUser
-
            user = AuthUser.get_by_login('login')
         """
         return DBSession.query(cls).filter(cls.login==login).first()

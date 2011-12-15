@@ -3,10 +3,6 @@ try:
 except ImportError:
     import simplejson as json
 
-import urlparse
-
-import velruse.store.sqlstore
-from velruse.utils import splitlines
 from velruse.store.sqlstore import KeyStorage
 
 from sqlalchemy.orm.exc import NoResultFound
