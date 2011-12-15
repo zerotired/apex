@@ -168,7 +168,7 @@ def reset_password(request):
                captcha={'ip_address': request.environ['REMOTE_ADDR']})
     if request.method == 'POST' and form.validate():
         user_id = request.matchdict.get('user_id')
-        user = AuthID.get_by_id(user_id)
+        user = AuthUser.get_by_id(user_id)
         submitted_hmac = request.matchdict.get('hmac')
         current_time = time.time()
         time_key = int(base64.b64decode(submitted_hmac[10:]))
