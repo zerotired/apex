@@ -34,7 +34,7 @@ class GenericFallback(object):
                 # md5
                 m = hashlib.md5()
                 # password='····� breaks when type=unicode
-                m.update(str(password))
+                m.update(password)
                 if m.hexdigest() == salted_passwd:
                     user.password = password
                     DBSession.merge(user)
